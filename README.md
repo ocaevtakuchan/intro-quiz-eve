@@ -55,3 +55,29 @@ PowerShell を開き、以下のコマンドを実行します：
 powershell -ExecutionPolicy Bypass -File .\server.ps1
 ```
 起動後、ブラウザで [http://localhost:8080/](http://localhost:8080/) にアクセスしてください。
+
+---
+
+## ☁️ Cloudflare Pages でのデプロイ方法
+
+本リポジトリは **Cloudflare Pages に最適化済み**（`_headers`, `_redirects`, `wrangler.toml`, `package.json` 完備）です。以下のいずれかの方法で簡単に公開できます。
+
+### 方法A: GitHub 連携で自動デプロイ（おすすめ）
+
+1. [Cloudflare ダッシュボード](https://dash.cloudflare.com/) にログイン
+2. 左メニュー **「Workers & Pages」** → **「Pages」** → **「Git に接続」** をクリック
+3. GitHubリポジトリ **`ocaevtakuchan/intro-quiz-eve`** を選択
+4. ビルド設定を入力：
+   - **プロジェクト名**: `intro-quiz-eve`（任意）
+   - **本番環境ブランチ**: `main`
+   - **フレームワーク プリセット**: `None` (なし)
+   - **ビルド コマンド**: （空欄のままでOK、または `npm run build`）
+   - **ビルド出力ディレクトリ**: `.` または `/`（ルートディレクトリ）
+5. **「保存してデプロイ」** をクリックすると、数秒で `https://intro-quiz-eve.pages.dev` のようなURLで世界中に公開されます！以降は GitHub にプッシュするたびに自動デプロイされます。
+
+### 方法B: Wrangler CLI から直接デプロイ
+
+ターミナルで以下のコマンドを実行するだけで即時デプロイできます：
+```bash
+npx wrangler pages deploy . --project-name=intro-quiz-eve
+```

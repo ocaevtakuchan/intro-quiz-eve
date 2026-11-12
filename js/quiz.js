@@ -69,7 +69,9 @@ class QuizEngine {
                 rel: 0,
                 modestbranding: 1,
                 disablekb: 1,
-                fs: 0
+                fs: 0,
+                enablejsapi: 1,
+                origin: (window.location.origin && window.location.origin !== 'null') ? window.location.origin : undefined
             },
             events: {
                 'onReady': () => {
