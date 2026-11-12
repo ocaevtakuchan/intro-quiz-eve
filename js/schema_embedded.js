@@ -52,7 +52,8 @@ INSERT OR REPLACE INTO difficulties (id, name, description, duration, replay_cou
 ('easy', 'EASY（初級）', '定番曲中心！イントロ5秒＋ヒント（年・アルバム）付きで初心者安心。何度でも聴き直し可能！', 5.0, 999, 4, 1.0, 1),
 ('normal', 'NORMAL（中級）', 'イントロ2.5秒！人気曲・アルバム曲から出題。何度でも聴き直し可能！', 2.5, 999, 4, 1.5, 0),
 ('hard', 'HARD（上級）', 'イントロ1.0秒！アルバム曲・YouTube Music公式音源含む全曲から出題。何度でも聴き直し可能！', 1.0, 999, 4, 2.5, 0),
-('demon', '鬼 (DEMON)', '極限の0.4秒イントロドン！マイナー・アルバム曲の出現確率が大幅アップ。何度でも聴き直し可能！', 0.4, 999, 4, 4.0, 0);
+('demon', '鬼 (DEMON)', '極限の0.4秒イントロドン！マイナー・アルバム曲の出現確率が大幅アップ。何度でも聴き直し可能！', 0.4, 999, 4, 4.0, 0),
+('god', '神 (0.1秒 GOD)', '超絶極限の0.1秒イントロドン！一瞬の気配しか感じ取れない神の領域モード（スコア6倍）', 0.1, 999, 4, 6.0, 0);
 
 INSERT OR REPLACE INTO songs (id, title, reading, youtube_id, intro_start, release_year, album, tier, source_type, trivia) VALUES
 (1, '廻廻奇譚', 'かいかいきたん', '1tk1pqwrOys', 0.0, 2020, '廻人', 1, 'MV', 'TVアニメ『呪術廻戦』第1クールOPテーマ。ストリーミング再生数4億回超のメガヒット。'),

@@ -78,10 +78,14 @@ class DatabaseManager {
             const shinkaiRes = this.db.exec("SELECT youtube_id FROM songs WHERE title = '心海'");
             const shinkaiYt = (shinkaiRes.length && shinkaiRes[0].values.length) ? shinkaiRes[0].values[0][0] : '';
             
-            console.log(`現在の登録楽曲数: ${currentCount} / 目標: ${this.TOTAL_SONGS_EXPECTED}, 心海ID: ${shinkaiYt}`);
+            // 難易度godのチェック
+            const godRes = this.db.exec("SELECT COUNT(*) AS cnt FROM difficulties WHERE id = 'god'");
+            const godCount = (godRes.length && godRes[0].values.length) ? godRes[0].values[0][0] : 0;
 
-            if (currentCount < this.TOTAL_SONGS_EXPECTED || shinkaiYt !== 'vRPCAAUBMms') {
-                console.log("最新の全55曲データ（公式MV＆YouTube Music音源）へ自動マイグレーションを実行します...");
+            console.log(`現在の登録楽曲数: ${currentCount} / 目標: ${this.TOTAL_SONGS_EXPECTED}, 心海ID: ${shinkaiYt}, god難易度: ${godCount}`);
+
+            if (currentCount < this.TOTAL_SONGS_EXPECTED || shinkaiYt !== 'vRPCAAUBMms' || godCount === 0) {
+                console.log("最新の全55曲データ＆新難易度（神0.1秒モード）へ自動マイグレーションを実行します...");
                 await this.initSchema();
                 this.persist();
             }

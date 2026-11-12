@@ -193,6 +193,7 @@ body {
 .diff-card.normal .diff-badge { color: #00bbf9; }
 .diff-card.hard .diff-badge { color: #ffd166; }
 .diff-card.demon .diff-badge { color: #f72585; }
+.diff-card.god .diff-badge { color: #c77dff; text-shadow: 0 0 10px rgba(199, 125, 255, 0.6); }
 
 .diff-duration {
     font-size: 0.95rem;
@@ -394,6 +395,7 @@ button {
 .diff-tag.normal { background: rgba(0, 187, 249, 0.2); color: #00bbf9; border: 1px solid #00bbf9; }
 .diff-tag.hard { background: rgba(255, 209, 102, 0.2); color: #ffd166; border: 1px solid #ffd166; }
 .diff-tag.demon { background: rgba(247, 37, 133, 0.2); color: #f72585; border: 1px solid #f72585; }
+.diff-tag.god { background: rgba(199, 125, 255, 0.2); color: #c77dff; border: 1px solid #c77dff; }
 
 .quiz-metrics {
     display: flex;
@@ -573,6 +575,12 @@ button {
     background: rgba(255, 209, 102, 0.15);
     color: #ffd166;
     box-shadow: 0 0 20px rgba(255, 209, 102, 0.3);
+}
+.btn-play-sabi:hover:not(:disabled) {
+    border-color: #ff2d55;
+    background: rgba(255, 45, 85, 0.15);
+    color: #ff4d6d;
+    box-shadow: 0 0 20px rgba(255, 45, 85, 0.3);
 }
 .btn-audio-control:disabled {
     opacity: 0.4;

@@ -120,6 +120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         timerText: document.getElementById('quiz-timer-text'),
         btnPlayFirst: document.getElementById('btn-play-first'),
         btnPlayOffset: document.getElementById('btn-play-offset'),
+        btnPlaySabi: document.getElementById('btn-play-sabi'),
         visualizer: document.getElementById('audio-visualizer'),
         videoContainer: document.getElementById('video-preview-container'),
         coverBlind: document.getElementById('video-blind'),
@@ -142,6 +143,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         quizUI.combo.textContent = data.combo;
         if (quizUI.btnPlayFirst) quizUI.btnPlayFirst.disabled = false;
         if (quizUI.btnPlayOffset) quizUI.btnPlayOffset.disabled = false;
+        if (quizUI.btnPlaySabi) quizUI.btnPlaySabi.disabled = false;
 
         // ブラインド（目隠し）を被せて音だけ聴かせる
         quizUI.coverBlind.classList.remove('revealed');
@@ -180,11 +182,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             quizUI.visualizer.querySelector('.visualizer-status').textContent = `♪ ${labelText}イントロ再生中 (${state.duration}秒)... 耳を澄ませ！`;
             if (quizUI.btnPlayFirst) quizUI.btnPlayFirst.disabled = true;
             if (quizUI.btnPlayOffset) quizUI.btnPlayOffset.disabled = true;
+            if (quizUI.btnPlaySabi) quizUI.btnPlaySabi.disabled = true;
         } else {
             quizUI.visualizer.classList.remove('active');
             quizUI.visualizer.querySelector('.visualizer-status').textContent = `回答を選択してください（何度でも聴き直し可能）`;
             if (quizUI.btnPlayFirst) quizUI.btnPlayFirst.disabled = false;
             if (quizUI.btnPlayOffset) quizUI.btnPlayOffset.disabled = false;
+            if (quizUI.btnPlaySabi) quizUI.btnPlaySabi.disabled = false;
         }
     };
 
@@ -195,7 +199,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         quizUI.timerBar.classList.remove('danger');
     };
 
-    // 2つの再生操作ボタンのイベントリスナー
+    // 3つの再生操作ボタンのイベントリスナー
     if (quizUI.btnPlayFirst) {
         quizUI.btnPlayFirst.addEventListener('click', () => {
             window.quizEngine.playFirstSecond();
@@ -205,6 +209,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (quizUI.btnPlayOffset) {
         quizUI.btnPlayOffset.addEventListener('click', () => {
             window.quizEngine.playFromOffset();
+        });
+    }
+
+    if (quizUI.btnPlaySabi) {
+        quizUI.btnPlaySabi.addEventListener('click', () => {
+            window.quizEngine.playFromSabi();
         });
     }
 
@@ -224,6 +234,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         quizUI.visualizer.classList.remove('active');
         if (quizUI.btnPlayFirst) quizUI.btnPlayFirst.disabled = true;
         if (quizUI.btnPlayOffset) quizUI.btnPlayOffset.disabled = true;
+        if (quizUI.btnPlaySabi) quizUI.btnPlaySabi.disabled = true;
 
         // 正誤演出
         quizUI.feedbackPanel.classList.remove('hidden');

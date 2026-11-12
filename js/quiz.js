@@ -98,7 +98,7 @@ class QuizEngine {
                     this.introStartTime = performance.now();
                     const durationMs = (this.currentPlaybackDuration || 1.0) * 1000;
 
-                    // 高精度監視ループ (10ms毎に経過時間をチェックして確実に停止)
+                    // 高精度監視ループ (5ms毎に経過時間をチェックして確実に停止)
                     if (this.watchdogInterval) clearInterval(this.watchdogInterval);
                     this.watchdogInterval = setInterval(() => {
                         if (!this.isPlayingIntro || this.isAnswered) {
@@ -111,13 +111,13 @@ class QuizEngine {
                             clearInterval(this.watchdogInterval);
                             this.stopIntroAudio();
                         }
-                    }, 10);
+                    }, 5);
 
                     // バックアップ用タイムアウト
                     if (this.stopTimeout) clearTimeout(this.stopTimeout);
                     this.stopTimeout = setTimeout(() => {
                         this.stopIntroAudio();
-                    }, durationMs + 20);
+                    }, durationMs + 15);
                 }
             } else if (!this.isPlayingIntro && !this.isAnswered) {
                 // 安全装置: 回答前なのにイントロ再生中フラグがOFFなら即座に停止
@@ -223,11 +223,14 @@ class QuizEngine {
     }
 
     /**
-     * 「最初の一秒を流す」 (0:00〜1.0秒)
+     * 「最初の一秒を流す」 (0:00〜)
+     * 難易度godなら0.1秒、demonなら0.4秒、その他は1.0秒
      */
     playFirstSecond() {
-        const duration = (this.difficulty.id === 'demon') ? 0.4 : 1.0;
-        this.playFrom(0.0, duration, '最初の一秒 (0:00〜)');
+        let duration = 1.0;
+        if (this.difficulty.id === 'god') duration = 0.1;
+        else if (this.difficulty.id === 'demon') duration = 0.4;
+        this.playFrom(0.0, duration, `最初の一秒 (0:00〜)`);
     }
 
     /**
@@ -238,15 +241,27 @@ class QuizEngine {
     }
 
     /**
-     * 音声の確実な一時停止
+     * 「1:00〜 を流す (サビ前)」 (60秒地点から難易度秒数再生)
+     */
+    playFromSabi() {
+        this.playFrom(60.0, this.difficulty.duration, '1:00〜 (サビ前)');
+    }
+
+    /**
+     * 音声の確実な一時停止 (0.1秒モードでも完全消音するダブル停止)
      */
     stopIntroAudio() {
         this.isPlayingIntro = false;
         this.clearStopTimers();
 
         try {
-            if (this.player && typeof this.player.pauseVideo === 'function') {
-                this.player.pauseVideo();
+            if (this.player) {
+                if (typeof this.player.mute === 'function') {
+                    this.player.mute(); // 音漏れを瞬時に物理遮断
+                }
+                if (typeof this.player.pauseVideo === 'function') {
+                    this.player.pauseVideo();
+                }
             }
         } catch (e) {}
 
@@ -311,8 +326,10 @@ class QuizEngine {
 
         // 回答後は公式MV / 音源をそのままフル再生して鑑賞！
         try {
-            if (this.player && typeof this.player.playVideo === 'function') {
-                this.player.playVideo();
+            if (this.player) {
+                if (typeof this.player.unMute === 'function') this.player.unMute();
+                if (typeof this.player.setVolume === 'function') this.player.setVolume(100);
+                if (typeof this.player.playVideo === 'function') this.player.playVideo();
             }
         } catch (e) {}
 
