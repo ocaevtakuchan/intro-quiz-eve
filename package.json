@@ -1,17 +1,21 @@
 {
   "name": "intro-quiz-eve",
   "version": "1.0.0",
+  "private": true,
   "description": "Eve 楽曲イントロクイズ (Official Songs Intro Quiz)",
   "scripts": {
-    "build": "echo 'Static deployment - no build required'",
-    "deploy": "wrangler pages deploy . --project-name=intro-quiz-eve",
-    "dev": "wrangler pages dev ."
+    "build": "echo 'Build OK'",
+    "deploy": "npx wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^3.100.0"
   },
   "keywords": [
     "eve",
     "intro-quiz",
     "sqlite-wasm",
-    "cloudflare-pages"
+    "cloudflare-pages",
+    "cloudflare-workers"
   ],
   "author": "ocaevtakuchan",
   "license": "MIT"

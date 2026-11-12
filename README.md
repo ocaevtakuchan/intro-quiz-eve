@@ -58,26 +58,24 @@ powershell -ExecutionPolicy Bypass -File .\server.ps1
 
 ---
 
-## ☁️ Cloudflare Pages でのデプロイ方法
+## ☁️ Cloudflare でのデプロイ方法 (Pages & Workers 両対応)
 
-本リポジトリは **Cloudflare Pages に最適化済み**（`_headers`, `_redirects`, `wrangler.toml`, `package.json` 完備）です。以下のいずれかの方法で簡単に公開できます。
+本リポジトリは **Cloudflare Pages** および **Cloudflare Workers (Static Assets)** の両方に完全対応（`worker.js`, `_headers`, `_redirects`, `wrangler.toml`, `package.json` 完備）しています。
 
-### 方法A: GitHub 連携で自動デプロイ（おすすめ）
+### パターン1: Cloudflare Pages を使う場合（推奨・静的サイト）
 
 1. [Cloudflare ダッシュボード](https://dash.cloudflare.com/) にログイン
-2. 左メニュー **「Workers & Pages」** → **「Pages」** → **「Git に接続」** をクリック
+2. 左メニュー **「Workers & Pages」** → **「Pages」** タブ → **「Git に接続」** をクリック
 3. GitHubリポジトリ **`ocaevtakuchan/intro-quiz-eve`** を選択
-4. ビルド設定を入力：
-   - **プロジェクト名**: `intro-quiz-eve`（任意）
-   - **本番環境ブランチ**: `main`
+4. ビルド設定：
    - **フレームワーク プリセット**: `None` (なし)
-   - **ビルド コマンド**: （空欄のままでOK、または `npm run build`）
-   - **ビルド出力ディレクトリ**: `.` または `/`（ルートディレクトリ）
-5. **「保存してデプロイ」** をクリックすると、数秒で `https://intro-quiz-eve.pages.dev` のようなURLで世界中に公開されます！以降は GitHub にプッシュするたびに自動デプロイされます。
+   - **ビルド コマンド**: 空欄（または `npm run build`）
+   - **ビルド出力ディレクトリ**: `.` または `/`
+5. **「保存してデプロイ」** をクリック。
 
-### 方法B: Wrangler CLI から直接デプロイ
+### パターン2: Cloudflare Workers (Git連携) でデプロイする場合
 
-ターミナルで以下のコマンドを実行するだけで即時デプロイできます：
-```bash
-npx wrangler pages deploy . --project-name=intro-quiz-eve
-```
+WorkersのGitデプロイ機能を使用している場合（「Deploy command」という項目が表示される画面）：
+- **Deploy command**: `npx wrangler deploy` (または `npm run deploy`)
+- **Root directory**: （空欄のまま）
+- `worker.js` と `wrangler.toml` の `[assets]` 設定により、自動的に全静的アセットが配信されます。

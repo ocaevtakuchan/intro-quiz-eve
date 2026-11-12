@@ -1,3 +1,11 @@
 name = "intro-quiz-eve"
+main = "worker.js"
 compatibility_date = "2024-01-01"
+
+# Cloudflare Workers 静的アセット配信設定
+[assets]
+directory = "."
+binding = "ASSETS"
+
+# Cloudflare Pages 用ビルド出力ディレクトリ
 pages_build_output_dir = "."
