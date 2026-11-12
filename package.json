@@ -8,7 +8,7 @@
     "deploy": "npx wrangler deploy"
   },
   "devDependencies": {
-    "wrangler": "^3.100.0"
+    "wrangler": "^4.0.0"
   },
   "keywords": [
     "eve",
