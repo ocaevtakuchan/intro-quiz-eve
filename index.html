@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eve 楽曲イントロクイズ - OFFICIAL SONGS INTRO QUIZ</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800;900&family=Montserrat:wght@400;600;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 背景アニメーション要素 -->
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+    <div class="bg-particles"></div>
+
+    <!-- 初期化ロード画面 -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <div id="loading-text" class="loading-text">Eve イントロクイズ 起動中...</div>
+    </div>
+
+    <!-- メインコンテナ -->
+    <main class="app-container">
+
+        <!-- ==================================================== -->
+        <!-- 1. タイトル画面 -->
+        <!-- ==================================================== -->
+        <section id="screen-title" class="screen active">
+            <header class="title-header">
+                <div class="title-sub">SQL DATABASE POWERED INTRO QUIZ</div>
+                <h1 class="main-title">
+                    <span class="title-artist">Eve</span>
+                    <span class="title-main">INTRO QUIZ</span>
+                </h1>
+                <p class="title-desc">
+                    『廻廻奇譚』『ドラマツルギー』『ナンセンス文学』から最新作まで――<br>
+                    Eveの公式MV名曲のイントロを聞き分けろ！
+                </p>
+            </header>
+
+            <!-- 難易度選択エリア -->
+            <div class="section-box difficulty-section">
+                <h2 class="section-title">難易度を選択</h2>
+                <div id="difficulty-selector" class="difficulty-grid">
+                    <!-- JavaScriptで動的生成 -->
+                </div>
+
+                <div class="quiz-settings">
+                    <label for="select-question-count">出題数:</label>
+                    <select id="select-question-count" class="custom-select">
+                        <option value="5" selected>5問（サクッと挑戦）</option>
+                        <option value="10">10問（スタンダード）</option>
+                        <option value="20">20問（じっくり挑戦）</option>
+                        <option value="30">30問（マニアック探検）</option>
+                        <option value="55">全55問（究極の全曲マラソン）</option>
+                    </select>
+                </div>
+
+                <div class="start-btn-wrap">
+                    <button id="btn-start-game" class="btn-primary btn-huge pulse">
+                        ▶ クイズスタート！
+                    </button>
+                </div>
+            </div>
+
+            <!-- プレイヤー戦績・DBアクセス -->
+            <div class="title-sub-grid">
+                <div class="stats-card">
+                    <h3>🏆 あなたの戦績サマリー</h3>
+                    <div class="stats-items">
+                        <div class="stat-item">
+                            <span class="stat-label">ハイスコア</span>
+                            <span id="stat-high-score" class="stat-num">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">プレイ回数</span>
+                            <span id="stat-total-plays" class="stat-num">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">通算正解率</span>
+                            <span id="stat-accuracy" class="stat-num">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="db-portal-card">
+                    <h3>🗄️ SQLite データベース連携</h3>
+                    <p>ブラウザ内蔵のSQLite DBにより、楽曲データ、出題ロジック、プレイ履歴を完全管理中！</p>
+                    <div class="btn-group">
+                        <button id="btn-open-db" class="btn-secondary">
+                            📊 収録楽曲 & SQLコンソール
+                        </button>
+                        <button id="btn-open-history" class="btn-secondary">
+                            📜 過去のプレイ履歴
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================================================== -->
+        <!-- 2. クイズプレイ画面 -->
+        <!-- ==================================================== -->
+        <section id="screen-quiz" class="screen">
+            <!-- クイズステータスバー -->
+            <div class="quiz-topbar">
+                <div class="quiz-progress">
+                    Question <span id="quiz-q-num">1</span> / <span id="quiz-total-q">5</span>
+                </div>
+                <div id="quiz-diff-badge" class="diff-tag normal">NORMAL</div>
+                <div class="quiz-metrics">
+                    <span class="metric">Combo: <strong id="quiz-combo-val">0</strong></span>
+                    <span class="metric">Score: <strong id="quiz-score-val">0</strong></span>
+                </div>
+                <button class="btn-back-to-title btn-sm">× 中断</button>
+            </div>
+
+            <!-- タイマーゲージ (無制限思考タイマー) -->
+            <div class="timer-container">
+                <div id="quiz-timer-fill" class="timer-bar unlimited"></div>
+                <div id="quiz-timer-text" class="timer-text">⏱️ 思考時間: 0.0s (無制限)</div>
+            </div>
+
+            <!-- メディア再生 & ビジュアライザーエリア -->
+            <div class="player-stage">
+                <!-- YouTubeプレーヤー (目隠し状態 または 回答後MVプレビュー) -->
+                <div id="video-preview-container" class="video-container">
+                    <div id="youtube-player"></div>
+                    <div id="video-blind" class="video-blind">
+                        <div class="blind-content">
+                            <div class="blind-icon">🎧</div>
+                            <div class="blind-title">INTRO PLAYING...</div>
+                            <div class="blind-sub">曲名を当ててください</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- オーディオビジュアライザーアニメーション -->
+                <div id="audio-visualizer" class="visualizer">
+                    <div class="bar bar-1"></div>
+                    <div class="bar bar-2"></div>
+                    <div class="bar bar-3"></div>
+                    <div class="bar bar-4"></div>
+                    <div class="bar bar-5"></div>
+                    <div class="bar bar-6"></div>
+                    <div class="bar bar-7"></div>
+                    <div class="bar bar-8"></div>
+                    <div class="visualizer-status">♪ イントロ再生中... 耳を澄ませ！</div>
+                </div>
+
+                <!-- リプレイ操作 (何回でも無制限) -->
+                <div class="playback-controls">
+                    <button id="btn-replay" class="btn-replay">
+                        🔄 もう一度聴く (何度でもOK)
+                    </button>
+                </div>
+
+                <!-- ヒントボックス (Easy等) -->
+                <div id="quiz-hint-box" class="hint-box hidden"></div>
+            </div>
+
+            <!-- 選択肢ボタンエリア (4択) -->
+            <div id="quiz-choices" class="choices-grid">
+                <!-- JavaScriptで生成 -->
+            </div>
+
+            <!-- 回答後フィードバックパネル (正解/不正解 & 解説) -->
+            <div id="quiz-feedback-panel" class="feedback-panel hidden">
+                <div class="feedback-header">
+                    <span id="feedback-result-badge" class="feedback-badge">CORRECT</span>
+                    <span id="feedback-earned-score" class="earned-score">+1,200 pts</span>
+                </div>
+                <div class="feedback-body">
+                    <h3 id="feedback-song-title" class="feedback-title">廻廻奇譚</h3>
+                    <div id="feedback-song-trivia" class="feedback-trivia"></div>
+                </div>
+                <div class="feedback-actions">
+                    <button id="btn-next-question" class="btn-primary btn-large">
+                        次の問題へ ➔
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================================================== -->
+        <!-- 3. リザルト画面 -->
+        <!-- ==================================================== -->
+        <section id="screen-result" class="screen">
+            <div class="result-box">
+                <h2 class="result-heading">QUIZ COMPLETED!</h2>
+                <div id="result-diff-name" class="result-diff">NORMAL MODE</div>
+
+                <div class="rank-display">
+                    <div id="result-rank-badge" class="rank-badge">S</div>
+                    <div class="rank-info">
+                        <div id="result-title-name" class="rank-title">特級Eveリスナー</div>
+                        <div id="result-title-desc" class="rank-desc">圧倒的なEve愛！イントロの神髄を知る者。</div>
+                    </div>
+                </div>
+
+                <div class="result-stats-grid">
+                    <div class="result-stat-card">
+                        <span class="lbl">最終スコア</span>
+                        <span id="result-final-score" class="val highlight">0</span>
+                    </div>
+                    <div class="result-stat-card">
+                        <span class="lbl">正解率</span>
+                        <span id="result-accuracy" class="val">0% (0/5)</span>
+                    </div>
+                    <div class="result-stat-card">
+                        <span class="lbl">最大コンボ</span>
+                        <span id="result-max-combo" class="val">0</span>
+                    </div>
+                </div>
+
+                <h3 class="section-title">出題ログ & 回答詳細</h3>
+                <div id="result-logs-list" class="result-logs-container">
+                    <!-- 回答詳細リスト -->
+                </div>
+
+                <div class="result-actions">
+                    <button id="btn-play-again" class="btn-primary btn-large">
+                        もう一度プレイする
+                    </button>
+                    <button class="btn-back-to-title btn-secondary btn-large">
+                        タイトルに戻る
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================================================== -->
+        <!-- 4. データベース管理 & SQLコンソール画面 -->
+        <!-- ==================================================== -->
+        <section id="screen-database" class="screen">
+            <div class="db-header-bar">
+                <h2>🗄️ SQLite データベース管理 (sql.js / WebAssembly)</h2>
+                <button class="btn-back-to-title btn-secondary">タイトルに戻る</button>
+            </div>
+
+            <!-- SQL コンソール -->
+            <div class="section-box sql-console-box">
+                <div class="sql-console-head">
+                    <h3>⚡ SQL クエリ実行コンソール</h3>
+                    <div class="sql-actions">
+                        <button id="btn-export-db" class="btn-sm btn-outline">💾 .sqlite エクスポート</button>
+                        <button id="btn-reset-db" class="btn-sm btn-danger">⚠️ DB初期化</button>
+                    </div>
+                </div>
+                <p class="sql-sub">収録楽曲や難易度、過去ログに対して任意のSQLを実行できます。</p>
+
+                <div class="sql-presets">
+                    <span>プリセットクエリ:</span>
+                    <button class="btn-sql-preset" data-sql="SELECT id, title, release_year, album, tier, source_type FROM songs ORDER BY release_year DESC;">📅 リリース年順一覧</button>
+                    <button class="btn-sql-preset" data-sql="SELECT title, album, release_year, source_type, trivia FROM songs WHERE source_type = 'YouTubeMusic';">🎧 YT Music限定音源</button>
+                    <button class="btn-sql-preset" data-sql="SELECT title, album, release_year, trivia FROM songs WHERE tier = 3;">🔮 マイナー・コア曲一覧</button>
+                    <button class="btn-sql-preset" data-sql="SELECT album, COUNT(*) AS count FROM songs GROUP BY album ORDER BY count DESC;">💿 アルバム別曲数集計</button>
+                    <button class="btn-sql-preset" data-sql="SELECT * FROM difficulties;">⚙️ 難易度設定一覧</button>
+                    <button class="btn-sql-preset" data-sql="SELECT * FROM play_history ORDER BY played_at DESC LIMIT 5;">🏆 最新スコア履歴</button>
+                </div>
+
+                <div class="sql-editor-wrap">
+                    <textarea id="sql-input" rows="3" placeholder="SELECT * FROM songs WHERE tier = 1;"></textarea>
+                    <button id="btn-run-sql" class="btn-primary">▶ 実行 (Run SQL)</button>
+                </div>
+                <div id="sql-output" class="sql-output-area"></div>
+            </div>
+
+            <!-- 楽曲マスターテーブル -->
+            <div class="section-box">
+                <h3>🎵 登録楽曲マスター (全曲リスト & 試聴)</h3>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>タイトル (読み)</th>
+                                <th>年</th>
+                                <th>アルバム</th>
+                                <th>Tier</th>
+                                <th>タイアップ・解説</th>
+                                <th>試聴</th>
+                            </tr>
+                        </thead>
+                        <tbody id="db-songs-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================================================== -->
+        <!-- 5. プレイ履歴画面 -->
+        <!-- ==================================================== -->
+        <section id="screen-history" class="screen">
+            <div class="db-header-bar">
+                <h2>📜 過去のプレイ履歴</h2>
+                <button class="btn-back-to-title btn-secondary">タイトルに戻る</button>
+            </div>
+
+            <div class="section-box">
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>プレイ日時</th>
+                                <th>難易度</th>
+                                <th>スコア</th>
+                                <th>正解率 (正解数/出題数)</th>
+                                <th>最大コンボ</th>
+                                <th>ランク</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 試聴用モーダルウィンドウ -->
+    <div id="modal-sample-player" class="modal hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modal-song-title">楽曲プレビュー</h3>
+                <button id="btn-close-modal" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <iframe id="modal-iframe" width="100%" height="315" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- ライブラリ & アプリケーションスクリプト -->
+    <script src="lib/sql-wasm.js"></script>
+    <script src="js/schema_embedded.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/quiz.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
