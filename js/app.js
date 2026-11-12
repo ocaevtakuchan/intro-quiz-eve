@@ -118,7 +118,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         combo: document.getElementById('quiz-combo-val'),
         timerBar: document.getElementById('quiz-timer-fill'),
         timerText: document.getElementById('quiz-timer-text'),
-        replayBtn: document.getElementById('btn-replay'),
+        btnPlayFirst: document.getElementById('btn-play-first'),
+        btnPlayOffset: document.getElementById('btn-play-offset'),
         visualizer: document.getElementById('audio-visualizer'),
         videoContainer: document.getElementById('video-preview-container'),
         coverBlind: document.getElementById('video-blind'),
@@ -139,7 +140,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         quizUI.diffName.textContent = data.difficulty.name;
         quizUI.score.textContent = data.score.toLocaleString();
         quizUI.combo.textContent = data.combo;
-        quizUI.replayBtn.disabled = false;
+        if (quizUI.btnPlayFirst) quizUI.btnPlayFirst.disabled = false;
+        if (quizUI.btnPlayOffset) quizUI.btnPlayOffset.disabled = false;
 
         // ブラインド（目隠し）を被せて音だけ聴かせる
         quizUI.coverBlind.classList.remove('revealed');
@@ -174,28 +176,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.quizEngine.onPlaybackStateChange = (state) => {
         if (state.isPlaying) {
             quizUI.visualizer.classList.add('active');
-            quizUI.visualizer.querySelector('.visualizer-status').textContent = `♪ イントロ再生中 (${state.duration}秒)... 耳を澄ませ！`;
-            quizUI.replayBtn.disabled = true;
+            const labelText = state.label ? `[${state.label}] ` : '';
+            quizUI.visualizer.querySelector('.visualizer-status').textContent = `♪ ${labelText}イントロ再生中 (${state.duration}秒)... 耳を澄ませ！`;
+            if (quizUI.btnPlayFirst) quizUI.btnPlayFirst.disabled = true;
+            if (quizUI.btnPlayOffset) quizUI.btnPlayOffset.disabled = true;
         } else {
             quizUI.visualizer.classList.remove('active');
             quizUI.visualizer.querySelector('.visualizer-status').textContent = `回答を選択してください（何度でも聴き直し可能）`;
-            quizUI.replayBtn.disabled = false;
+            if (quizUI.btnPlayFirst) quizUI.btnPlayFirst.disabled = false;
+            if (quizUI.btnPlayOffset) quizUI.btnPlayOffset.disabled = false;
         }
     };
 
     // タイマー更新 (制限時間無制限！経過時間を表示)
     window.quizEngine.onTimerTick = (elapsedSec) => {
         quizUI.timerText.textContent = `⏱️ 思考時間: ${elapsedSec.toFixed(1)}s (無制限)`;
-        // タイマーバーは穏やかにアニメーション
-        const cycle = (elapsedSec % 10) / 10;
         quizUI.timerBar.style.width = `100%`;
         quizUI.timerBar.classList.remove('danger');
     };
 
-    // リプレイボタン (何回でも無制限に聴ける！)
-    quizUI.replayBtn.addEventListener('click', () => {
-        window.quizEngine.replayIntro();
-    });
+    // 2つの再生操作ボタンのイベントリスナー
+    if (quizUI.btnPlayFirst) {
+        quizUI.btnPlayFirst.addEventListener('click', () => {
+            window.quizEngine.playFirstSecond();
+        });
+    }
+
+    if (quizUI.btnPlayOffset) {
+        quizUI.btnPlayOffset.addEventListener('click', () => {
+            window.quizEngine.playFromOffset();
+        });
+    }
 
     // 回答結果の表示
     window.quizEngine.onAnswerResult = (res) => {
@@ -211,7 +222,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         // MV / 音源を解禁！
         quizUI.coverBlind.classList.add('revealed');
         quizUI.visualizer.classList.remove('active');
-        quizUI.replayBtn.disabled = true;
+        if (quizUI.btnPlayFirst) quizUI.btnPlayFirst.disabled = true;
+        if (quizUI.btnPlayOffset) quizUI.btnPlayOffset.disabled = true;
 
         // 正誤演出
         quizUI.feedbackPanel.classList.remove('hidden');

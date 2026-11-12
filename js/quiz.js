@@ -1,8 +1,9 @@
 /**
- * Eve イントロクイズ - クイズエンジン & YouTube Player 制御 (改善版 v3)
- * - もう一度聴く: 何度でも無制限
- * - 制限時間: 無制限 (じっくり思考可能)
- * - イントロ停止: 0.4s/1.0s/2.5s/5.0s 確実停止
+ * Eve イントロクイズ - クイズエンジン & YouTube Player 制御 (改善版 v4)
+ * - 最初の一秒を流すボタン (0:00〜)
+ * - 0:05〜 を流すボタン
+ * - 何度でも無制限に再生可能
+ * - 高精度ストップ機能
  */
 
 class QuizEngine {
@@ -14,6 +15,8 @@ class QuizEngine {
         this.isPlayingIntro = false;
         this.introPlaybackStarted = false;
         this.introStartTime = 0;
+        this.currentPlaybackStartSec = 0;
+        this.currentPlaybackDuration = 1.0;
         this.stopTimeout = null;
         this.watchdogInterval = null;
         this.timerInterval = null;
@@ -25,7 +28,7 @@ class QuizEngine {
         this.currentIndex = 0;
         this.currentSong = null;
         this.currentChoices = [];
-        this.elapsedTime = 0; // 経過秒数 (無制限)
+        this.elapsedTime = 0;
         this.score = 0;
         this.combo = 0;
         this.maxCombo = 0;
@@ -93,7 +96,7 @@ class QuizEngine {
                 if (!this.introPlaybackStarted) {
                     this.introPlaybackStarted = true;
                     this.introStartTime = performance.now();
-                    const durationMs = this.difficulty.duration * 1000;
+                    const durationMs = (this.currentPlaybackDuration || 1.0) * 1000;
 
                     // 高精度監視ループ (10ms毎に経過時間をチェックして確実に停止)
                     if (this.watchdogInterval) clearInterval(this.watchdogInterval);
@@ -174,29 +177,37 @@ class QuizEngine {
             });
         }
 
-        // イントロ再生開始
-        this.playIntro();
+        // デフォルトでは「最初の一秒 (0:00〜)」を再生
+        this.playFirstSecond();
         this.startTimer();
     }
 
     /**
-     * イントロ音声の再生
+     * 指定秒数から指定時間だけ再生
+     * @param {number} startSec 再生開始秒 (0 または 5.0 など)
+     * @param {number|null} duration 再生秒数 (nullの場合は難易度設定値)
+     * @param {string} label 再生ボタンのラベル種別
      */
-    playIntro() {
+    playFrom(startSec = 0, duration = null, label = '') {
         if (!this.player || !this.isPlayerReady) {
             console.warn("Player not ready yet, retrying in 400ms");
-            setTimeout(() => this.playIntro(), 400);
+            setTimeout(() => this.playFrom(startSec, duration, label), 400);
             return;
         }
 
         this.clearStopTimers();
         this.isPlayingIntro = true;
         this.introPlaybackStarted = false;
-
-        const startSec = this.currentSong.intro_start || 0;
+        this.currentPlaybackStartSec = startSec;
+        this.currentPlaybackDuration = duration || this.difficulty.duration;
 
         if (this.onPlaybackStateChange) {
-            this.onPlaybackStateChange({ isPlaying: true, duration: this.difficulty.duration });
+            this.onPlaybackStateChange({ 
+                isPlaying: true, 
+                duration: this.currentPlaybackDuration,
+                startSec: startSec,
+                label: label
+            });
         }
 
         try {
@@ -212,7 +223,22 @@ class QuizEngine {
     }
 
     /**
-     * イントロ音声の確実な停止
+     * 「最初の一秒を流す」 (0:00〜1.0秒)
+     */
+    playFirstSecond() {
+        const duration = (this.difficulty.id === 'demon') ? 0.4 : 1.0;
+        this.playFrom(0.0, duration, '最初の一秒 (0:00〜)');
+    }
+
+    /**
+     * 「0:05〜 を流す」 (0:05から難易度秒数再生)
+     */
+    playFromOffset() {
+        this.playFrom(5.0, this.difficulty.duration, '0:05〜');
+    }
+
+    /**
+     * 音声の確実な一時停止
      */
     stopIntroAudio() {
         this.isPlayingIntro = false;
@@ -230,16 +256,7 @@ class QuizEngine {
     }
 
     /**
-     * もう一度聴く（リプレイ） - 何回でも無制限！
-     */
-    replayIntro() {
-        if (this.isPlayingIntro || this.isAnswered) return false;
-        this.playIntro();
-        return true;
-    }
-
-    /**
-     * 思考タイマー開始 (制限時間は無制限！)
+     * 思考タイマー開始
      */
     startTimer() {
         if (this.timerInterval) clearInterval(this.timerInterval);
@@ -248,7 +265,6 @@ class QuizEngine {
 
         this.timerInterval = setInterval(() => {
             this.elapsedTime += 0.1;
-            // 制限時間なし（時間切れ強制終了はしない）
             if (this.onTimerTick) {
                 this.onTimerTick(this.elapsedTime);
             }
@@ -275,9 +291,7 @@ class QuizEngine {
             if (this.combo > this.maxCombo) this.maxCombo = this.combo;
             this.correctCount++;
 
-            // スコア計算: 基本点 1000点 + 早期回答ボーナス（最大500点、ゆっくり答えても減衰するだけでゼロ未満にはならない）
             const baseScore = 1000;
-            // 5秒以内なら500点、30秒で0点に向かってなだらかに減衰
             const timeBonus = Math.max(50, Math.round(500 * Math.max(0, (30 - timeTakenSec) / 30)));
             const comboBonus = (this.combo - 1) * 150;
             earnedScore = Math.round((baseScore + timeBonus + comboBonus) * this.difficulty.bonus_multiplier);
@@ -295,7 +309,7 @@ class QuizEngine {
             earnedScore
         });
 
-        // 回答後は公式MV / YouTube Music音源をそのまま継続再生して鑑賞！
+        // 回答後は公式MV / 音源をそのままフル再生して鑑賞！
         try {
             if (this.player && typeof this.player.playVideo === 'function') {
                 this.player.playVideo();
@@ -315,18 +329,12 @@ class QuizEngine {
         }
     }
 
-    /**
-     * 次の問題へ進む
-     */
     proceedNext() {
         this.stopIntroAudio();
         this.currentIndex++;
         this.nextQuestion();
     }
 
-    /**
-     * クイズ終了・リザルト作成
-     */
     finishQuiz() {
         this.stopIntroAudio();
         if (this.timerInterval) clearInterval(this.timerInterval);
@@ -340,7 +348,6 @@ class QuizEngine {
         const accuracy = Math.round((this.correctCount / this.questions.length) * 100);
         const rankInfo = this.calculateRank(accuracy, this.score);
 
-        // データベースに保存
         const historyId = window.dbManager.savePlayResult({
             difficultyId: this.difficulty.id,
             score: this.score,
@@ -366,9 +373,6 @@ class QuizEngine {
         }
     }
 
-    /**
-     * ランク & 称号の判定
-     */
     calculateRank(accuracy, score) {
         if (accuracy === 100) {
             return { rank: 'S+', title: 'Eve神 (廻人マスター)', desc: '完璧な耳！全問完全正解の偉業達成！', color: '#ff2d55' };
