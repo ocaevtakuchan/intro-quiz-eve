@@ -428,9 +428,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     document.getElementById('btn-reset-db').addEventListener('click', async () => {
-        if (confirm("データベースを最新状態（全55曲）にリセットしますか？プレイ履歴も消去されます。")) {
+        if (confirm("データベースを最新状態（全91曲）にリセットしますか？プレイ履歴も消去されます。")) {
             await window.dbManager.reset();
-            alert("データベースを初期化しました（全55曲）。");
+            alert("データベースを初期化しました（全91曲）。");
             renderSongsTable();
             updateTitleStats();
         }

@@ -1,6 +1,6 @@
 /**
  * Eve イントロクイズ - SQLite データベースマネージャー (sql.js / WebAssembly)
- * 全55曲対応 (MV & YouTube Music公式音源) & 自動マイグレーション機能
+ * 全91曲対応 (MV & YouTube Music公式音源) & 自動マイグレーション機能
  */
 
 class DatabaseManager {
@@ -8,7 +8,7 @@ class DatabaseManager {
         this.db = null;
         this.SQL = null;
         this.isReady = false;
-        this.TOTAL_SONGS_EXPECTED = 55;
+        this.TOTAL_SONGS_EXPECTED = 91;
     }
 
     /**
@@ -85,7 +85,7 @@ class DatabaseManager {
             console.log(`現在の登録楽曲数: ${currentCount} / 目標: ${this.TOTAL_SONGS_EXPECTED}, 心海ID: ${shinkaiYt}, god難易度: ${godCount}`);
 
             if (currentCount < this.TOTAL_SONGS_EXPECTED || shinkaiYt !== 'vRPCAAUBMms' || godCount === 0) {
-                console.log("最新の全55曲データ＆新難易度（神0.1秒モード）へ自動マイグレーションを実行します...");
+                console.log("最新の全91曲データ＆新難易度（神0.1秒モード）へ自動マイグレーションを実行します...");
                 await this.initSchema();
                 this.persist();
             }
@@ -190,7 +190,7 @@ class DatabaseManager {
             `;
             params = [count];
         } else if (difficultyId === 'hard') {
-            // Hardは全55曲から均等ランダム出題（マイナー・アルバム曲・YouTube Music音源含む）
+            // Hardは全91曲から均等ランダム出題（マイナー・アルバム曲・YouTube Music音源含む）
             sql = `
                 SELECT * FROM songs 
                 ORDER BY RANDOM() 
